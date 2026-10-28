@@ -1,0 +1,39 @@
+name: Verify AskDB
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: pip install -r query_service/requirements.txt
+      - run: pytest -q query_service/tests
+      - run: dotnet build api -c Release
+      - run: npm ci && npm run build
+        working-directory: web
+      - run: docker compose up -d --build
+      - run: |
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:8080/api/health && curl -fsS http://127.0.0.1:8080/api/schema; then break; fi
+            sleep 2
+          done
+          python3 scripts/smoke_test.py
+      - run: dotnet publish api -c Release -o /tmp/askdb-ci-api
+      - run: python3 -m pytest scripts/qa/test_endpoints.py -q
+        env:
+          ASKDB_BUILD: /tmp/askdb-ci-api
+          ASKDB_DOTNET: dotnet
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: node scripts/browser_test.cjs
+      - run: node scripts/browser_regressions.cjs
+      - if: always()
+        run: docker compose logs && docker compose down -v
