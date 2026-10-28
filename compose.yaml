@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: askdb
+      POSTGRES_USER: demo_admin
+      POSTGRES_PASSWORD: local-demo-admin
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo_admin -d askdb"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  planner:
+    build: ./query_service
+    environment:
+      QUERY_MODE: ${QUERY_MODE:-demo}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4.1-mini}
+  api:
+    build: .
+    environment:
+      ConnectionStrings__Analytics: Host=db;Database=askdb;Username=askdb_reader;Password=local-demo-reader
+      PlannerUrl: http://planner:8001
+      WorkspacePath: /app/workspace
+    volumes:
+      - workspace:/app/workspace
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      planner:
+        condition: service_started
+volumes:
+  pgdata:
+  workspace:
