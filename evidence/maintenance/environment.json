@@ -1,0 +1,11 @@
+{
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "cpus": 9,
+  "node": "v24.22.1",
+  "dotnet_runtime": "8.0.21",
+  "dotnet_sdk": "8.0.415",
+  "compiler": "direct Roslyn with net8.0 and ASP.NET reference assemblies; SDK CLI blocked by process metadata",
+  "database": "PGlite0.5.11 / PostgreSQL18.6, socket0.2.14",
+  "browser": "Playwright1.51.1 Chromium134"
+}

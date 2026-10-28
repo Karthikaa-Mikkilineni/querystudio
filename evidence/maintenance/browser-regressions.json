@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "checks": [
+    "edited SQL reaches real endpoint",
+    "saved query survives page reload",
+    "cancelled UI request ignores late response",
+    "HTTP timeout shown accessibly",
+    "CSV formula neutralization, zero values, commas and quotes"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "target": "local loopback ASP.NET processes; release directories share workspace file; not Docker or production",
+  "steps": [
+    "failed atomic write leaves snapshot unchanged",
+    "successful retry persists saved query",
+    "rollback health, schema, UI, query smoke and persistent state",
+    "redeploy health, schema, UI, query smoke and persistent state"
+  ]
+}

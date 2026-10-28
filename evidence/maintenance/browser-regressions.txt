@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "checks": [
+    "edited SQL reaches real endpoint",
+    "saved query survives page reload",
+    "cancelled UI request ignores late response",
+    "HTTP timeout shown accessibly",
+    "CSV formula neutralization, zero values, commas and quotes"
+  ],
+  "scope": "Two real API flows; three deterministic HTTP-interception browser checks. Cancellation is UI behavior, not a database cancellation guarantee."
+}
