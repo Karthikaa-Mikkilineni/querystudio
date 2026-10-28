@@ -1,0 +1,18 @@
+CREATE SCHEMA analytics;
+CREATE TABLE analytics.customers(customer_id integer PRIMARY KEY,name text NOT NULL,region text NOT NULL);
+CREATE TABLE analytics.orders(order_id integer PRIMARY KEY,customer_id integer NOT NULL REFERENCES analytics.customers,order_date date NOT NULL,status text NOT NULL CHECK(status IN ('completed','pending','cancelled')));
+CREATE TABLE analytics.order_items(order_id integer REFERENCES analytics.orders,product text NOT NULL,quantity integer CHECK(quantity>0),unit_price numeric(10,2) CHECK(unit_price>=0),PRIMARY KEY(order_id,product));
+INSERT INTO analytics.customers SELECT n,'Customer '||n,(ARRAY['East','West','North','South'])[1+(n-1)%4] FROM generate_series(1,40) n;
+INSERT INTO analytics.orders SELECT n,1+(n-1)%40,DATE '2025-01-01'+((n-1)%360),CASE WHEN n%10=0 THEN 'cancelled' WHEN n%7=0 THEN 'pending' ELSE 'completed' END FROM generate_series(1,400) n;
+INSERT INTO analytics.order_items SELECT n,p,1+(n%3),CASE p WHEN 'Keyboard' THEN 60 WHEN 'Monitor' THEN 200 ELSE 25 END FROM generate_series(1,400) n CROSS JOIN (VALUES('Keyboard'),('Monitor'),('Mouse')) products(p);
+CREATE INDEX ON analytics.orders(customer_id);
+CREATE INDEX ON analytics.orders(order_date);
+CREATE INDEX ON analytics.orders(status);
+CREATE ROLE askdb_reader LOGIN PASSWORD 'local-demo-reader';
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE CREATE ON SCHEMA analytics FROM PUBLIC;
+GRANT USAGE ON SCHEMA analytics TO askdb_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO askdb_reader;
+ALTER ROLE askdb_reader SET default_transaction_read_only=on;
+ALTER ROLE askdb_reader SET statement_timeout='2000ms';
+ALTER ROLE askdb_reader SET search_path=analytics;
