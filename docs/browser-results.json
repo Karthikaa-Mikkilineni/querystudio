@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "Angular renders live schema",
+    "execute SQL",
+    "filter results",
+    "chart",
+    "CSV download",
+    "save/open query",
+    "pagination",
+    "blocked SQL error",
+    "demo draft preview",
+    "persistent history UI",
+    "mobile no overflow",
+    "no uncaught browser errors"
+  ],
+  "status": "passed"
+}

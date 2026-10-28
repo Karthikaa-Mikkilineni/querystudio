@@ -1,0 +1,115 @@
+{
+  "database": "PGlite PostgreSQL WASM with Npgsql protocol integration",
+  "demo_queries": [
+    {
+      "question": "revenue by region",
+      "status": 200,
+      "rows": 4
+    },
+    {
+      "question": "regional revenue",
+      "status": 200,
+      "rows": 4
+    },
+    {
+      "question": "sales by region",
+      "status": 200,
+      "rows": 4
+    },
+    {
+      "question": "show revenue by region",
+      "status": 200,
+      "rows": 4
+    },
+    {
+      "question": "monthly revenue",
+      "status": 200,
+      "rows": 12
+    },
+    {
+      "question": "revenue by month",
+      "status": 200,
+      "rows": 12
+    },
+    {
+      "question": "monthly sales",
+      "status": 200,
+      "rows": 12
+    },
+    {
+      "question": "show monthly revenue",
+      "status": 200,
+      "rows": 12
+    },
+    {
+      "question": "top products by revenue",
+      "status": 200,
+      "rows": 3
+    },
+    {
+      "question": "top products",
+      "status": 200,
+      "rows": 3
+    },
+    {
+      "question": "best selling products",
+      "status": 200,
+      "rows": 3
+    },
+    {
+      "question": "order counts by status",
+      "status": 200,
+      "rows": 3
+    },
+    {
+      "question": "orders by status",
+      "status": 200,
+      "rows": 3
+    },
+    {
+      "question": "order status counts",
+      "status": 200,
+      "rows": 3
+    },
+    {
+      "question": "top customers by revenue",
+      "status": 200,
+      "rows": 5
+    },
+    {
+      "question": "top customers",
+      "status": 200,
+      "rows": 5
+    },
+    {
+      "question": "highest spending customers",
+      "status": 200,
+      "rows": 5
+    },
+    {
+      "question": "customer count by region",
+      "status": 200,
+      "rows": 4
+    },
+    {
+      "question": "customers by region",
+      "status": 200,
+      "rows": 4
+    },
+    {
+      "question": "regional customer counts",
+      "status": 200,
+      "rows": 4
+    }
+  ],
+  "custom_sql_checks": 4,
+  "blocked_sql_checks": 4,
+  "invalid_column_handling": "passed",
+  "row_cap_and_truncation": "passed",
+  "save_validate_delete": "passed",
+  "workspace_survives_api_restart": "passed",
+  "expected_revenue_check": "passed",
+  "schema_introspection": "3 tables",
+  "browser_checks": "see browser-results.json",
+  "clear_history": "passed"
+}
