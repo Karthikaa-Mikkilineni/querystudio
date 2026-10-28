@@ -1,0 +1,25 @@
+const {chromium}=require('../web/node_modules/playwright');
+const fs=require('fs');fs.mkdirSync('.qa',{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1500,height:1100}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:8080');await page.getByLabel('SQL query').waitFor();
+ await page.getByRole('button',{name:'Run query',exact:false}).click();await page.getByText('Executed in',{exact:false}).waitFor();
+ if(await page.locator('tbody tr').count()!==4)throw Error('Expected four regions');
+ await page.getByLabel('Filter results').fill('East');if(await page.locator('tbody tr').count()!==1)throw Error('Filter failed');await page.getByLabel('Filter results').fill('');
+ await page.getByRole('button',{name:'Chart',exact:false}).click();if(await page.locator('.bar-row').count()!==4)throw Error('Chart failed');await page.locator('.result-toolbar').getByRole('button',{name:'Table',exact:false}).click();
+ const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:/Export CSV/}).click();const download=await downloadPromise;if(download.suggestedFilename()!=='askdb-results.csv')throw Error('CSV failed');
+ await page.getByLabel('Saved query name').fill('Regional revenue');await page.getByRole('button',{name:'Save query',exact:false}).click();await page.getByRole('status').waitFor();
+ await page.getByRole('button',{name:/Saved queries/}).click();await page.getByRole('heading',{name:'Regional revenue',exact:true}).waitFor();await page.getByRole('button',{name:'Open in studio',exact:false}).last().click();
+ await page.getByLabel('SQL query').fill('SELECT order_id,status FROM analytics.orders ORDER BY order_id');await page.getByRole('button',{name:'Run query',exact:false}).click();await page.getByText('Executed in',{exact:false}).waitFor();
+ if(await page.locator('tbody tr').count()!==10)throw Error('Pagination initial failed');await page.getByLabel('Next page').click();if(!(await page.locator('tbody tr').first().innerText()).includes('11'))throw Error('Pagination next failed');
+ await page.getByLabel('SQL query').fill('DELETE FROM analytics.orders');await page.getByRole('button',{name:'Run query',exact:false}).click();await page.getByRole('alert').waitFor();
+ await page.getByLabel('Dismiss error').click();await page.getByRole('button',{name:/Ask in plain language/}).click();await page.getByRole('button',{name:'Revenue by region',exact:true}).click();await page.getByRole('button',{name:'Load demo SQL',exact:true}).click();await page.getByLabel('SQL query').waitFor();
+ await page.getByRole('button',{name:'Run query',exact:false}).click();await page.getByText('Executed in',{exact:false}).waitFor();
+ await page.screenshot({path:'.qa/desktop.png',fullPage:true});
+ await page.getByRole('button',{name:/Query history/}).click();if(await page.locator('.history-row').count()<2)throw Error('History failed');
+ await page.getByRole('button',{name:/Query studio/}).click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.qa/mobile.png',fullPage:true});
+ if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Mobile overflow');if(errors.length)throw Error(errors.join(';'));
+ await browser.close();const checks=['Angular renders live schema','execute SQL','filter results','chart','CSV download','save/open query','pagination','blocked SQL error','demo draft preview','persistent history UI','mobile no overflow','no uncaught browser errors'];
+ fs.writeFileSync('docs/browser-results.json',JSON.stringify({checks,status:'passed'},null,2));console.log('PASS: '+checks.join(', '));
+})().catch(e=>{console.error(e);process.exit(1)});
