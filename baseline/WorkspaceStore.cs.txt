@@ -1,0 +1,21 @@
+using System.IO;
+using System.Text.Json;
+// Local, single-process workspace metadata. No shared-service authentication is implied.
+public sealed class WorkspaceStore{
+ private readonly SemaphoreSlim gate=new(1,1);private readonly string path;
+ private static readonly JsonSerializerOptions json=new(JsonSerializerDefaults.Web);
+ public WorkspaceStore(IConfiguration config){path=Path.Combine(config["WorkspacePath"]??Path.Combine(AppContext.BaseDirectory,"workspace"),"workspace.json");Directory.CreateDirectory(Path.GetDirectoryName(path)!);}
+ private async Task<State> Read(CancellationToken ct)=>File.Exists(path)?JsonSerializer.Deserialize<State>(await File.ReadAllTextAsync(path,ct),json)??new():new();
+ private async Task Write(State state,CancellationToken ct){var temp=path+".tmp";await File.WriteAllTextAsync(temp,JsonSerializer.Serialize(state,json),ct);File.Move(temp,path,true);}
+ private async Task<T> Locked<T>(Func<State,Task<T>> fn,CancellationToken ct){await gate.WaitAsync(ct);try{return await fn(await Read(ct));}finally{gate.Release();}}
+ public Task<List<HistoryEntry>> History(CancellationToken ct)=>Locked(s=>Task.FromResult(s.History.Take(50).ToList()),ct);
+ public Task<List<SavedQuery>> Saved(CancellationToken ct)=>Locked(s=>Task.FromResult(s.Saved.OrderByDescending(x=>x.CreatedAt).ToList()),ct);
+ public Task<SavedQuery> Save(string name,string sql,CancellationToken ct)=>Locked(async s=>{
+  if(s.Saved.Count>=100)throw new InvalidOperationException("Local saved-query limit reached.");
+  var value=new SavedQuery(Guid.NewGuid(),name,sql,DateTimeOffset.UtcNow);s.Saved.Add(value);await Write(s,ct);return value;
+ },ct);
+ public Task<bool> Delete(Guid id,CancellationToken ct)=>Locked(async s=>{var n=s.Saved.RemoveAll(x=>x.Id==id);if(n>0)await Write(s,ct);return n>0;},ct);
+ public Task<bool> ClearHistory(CancellationToken ct)=>Locked(async s=>{s.History.Clear();await Write(s,ct);return true;},ct);
+ public Task<bool> Record(HistoryEntry entry,CancellationToken ct)=>Locked(async s=>{s.History.Insert(0,entry);s.History=s.History.Take(100).ToList();await Write(s,ct);return true;},ct);
+ public sealed class State{public List<HistoryEntry> History{get;set;}=[];public List<SavedQuery> Saved{get;set;}=[];}
+}
