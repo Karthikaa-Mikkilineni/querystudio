@@ -1,0 +1,13 @@
+public record Question(string Text);
+public record QueryRequest(string? Text,string? Sql);
+public record Plan(string Sql,string Mode);
+public record QueryTemplate(string Name,string Sql);
+public record SchemaInfo(string Schema,string[] Examples,QueryTemplate[] Templates,string Mode);
+public record ColumnInfo(string Name,string Type,bool Nullable);
+public record TableInfo(string Name,List<ColumnInfo> Columns);
+public record QueryResult(string RequestId,string Sql,string Mode,string[] Columns,List<object?[]> Rows,bool Truncated,long DurationMs,double EstimatedCost);
+public record HistoryEntry(string RequestId,string Sql,string Mode,string Status,int RowCount,long DurationMs,DateTimeOffset Timestamp);
+public record SavedQuery(Guid Id,string Name,string Sql,DateTimeOffset CreatedAt);
+public record SaveRequest(string Name,string Sql);
+public class PlannerException(string message):Exception(message);
+public class QueryPolicyException(string message):Exception(message);
